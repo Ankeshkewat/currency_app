@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        table {
+            border: 1px solid;
+            width: 50%;
+            margin: auto;
+        }
+
+        td {
+            border: 1px solid;
+
+        }
+
+        #top {
+            width: 50%;
+            margin: auto;
+        }
+
+        #user_curr {
+            width: 50%;
+            margin: auto;
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="top">
+        <h1>Change intervals:</h1>
+        <select name="" id="interval">
+            <option value="500"> 500ms Default</option>
+            <option value="1000"> 1 second</option>
+            <option value="1500"> 1.5 second</option>
+        </select>
+    </div>
+    <div id="table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name Of Currency</th>
+                    <th>Current price</th>
+                    <th>Buy</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>A</td>
+                    <td id="A_price"></td>
+                    <td id="A_buy">Buy</td>
+                </tr>
+                <tr>
+                    <td>B</td>
+                    <td id="B_price"></td>
+                    <td id="B_buy">Buy</td>
+                </tr>
+                <tr>
+                    <td>C</td>
+                    <td id="C_price"></td>
+                    <td id="C_buy">Buy</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="user_curr">
+       <h3>Your Owned Currencies:</h3>
+       <table id="own">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Purchased stocks</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody id="tbody">
+            <!-- appending -->
+        </tbody>
+       </table>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"
+        integrity="sha384-/KNQL8Nu5gCHLqwqfQjA689Hhoqgi2S84SNUxC3roTe4EhJ9AfLkp8QiQcU8AMzI" crossorigin="anonymous">
+        </script>
+</body>
+
+</html>
+
+<script>
+    // const socket = io("http://localhost:8080/",{transports:["websocket"]});
+    let A_price;
+    let B_price;
+    let C_price;
+    const socket = io()
+    let interval=document.getElementById('interval').value;
+    socket.emit('interval',interval )
+    socket.on('A_price', (msg) => {
+        document.getElementById('A_price').innerText = msg
+        A_price = msg
+
+    })
+    socket.on('B_price', (msg) => {
+        document.getElementById('B_price').innerText = msg
+        B_price = msg
+    })
+    socket.on('C_price', (msg) => {
+        document.getElementById('C_price').innerText = msg
+        C_price = msg
+    })
+
+    let A_buy = document.getElementById('A_buy').onclick = async () => {
+        let quant = prompt(`how much quantity of A you want to buy?`)
+        let total = A_price * quant
+
+        let form = { curr: 'A', price: total ,stock:quant}
+        let res = await fetch('http://localhost:8080/post', {
+            method: "POST",
+            body: JSON.stringify(form),
+            headers: {
+                'Content-Type': "application/json"
+            } 
+        })
+        let data=await res.json();
+        alert(data.msg)
+    }
+    let B_buy = document.getElementById('B_buy').onclick = async () => {
+        let quant = prompt(`how much quantity of B you want to buy?`)
+        let total = B_price * quant
+
+        let form = { curr: 'B', price: total,stock:quant }
+        let res = await fetch('http://localhost:8080/post', {
+            method: "POST",
+            body: JSON.stringify(form),
+            headers: {
+                'Content-Type': "application/json"
+            } 
+        })
+        let data=await res.json();
+        alert(data.msg)
+    }
+    let C_buy = document.getElementById('C_buy').onclick = async () => {
+        let quant = prompt(`how much quantity of C you want to buy?`)
+        let total = A_price * quant
+
+        let form = { curr: 'C', price: total,stock:quant }
+        let res = await fetch('http://localhost:8080/post', {
+            method: "POST",
+            body: JSON.stringify(form),
+            headers: {
+                'Content-Type': "application/json"
+            } 
+        })
+        let data=await res.json();
+        alert(data.msg)
+    }
+
+    socket.emit('jay',"hello")
+
+    //getting all purchased
+   window.onload=()=>{
+    getStock()
+   }
+  
+   async function getStock(){    
+            try{
+                let res=await fetch('http://localhost:8080/get')
+                let {data}=await res.json();
+                console.log(data)
+                data.forEach((el)=>{
+                    let tr=document.createElement('tr')
+                    let td1=document.createElement('td')
+                    td1.innerText=el.curr
+                    let td2=document.createElement('td')
+                    td2.innerText=el.price
+                    let td3=document.createElement('td')
+                    td3.innerText=el.stock
+                    tr.append(td1,td3,td2)
+                 document.getElementById('tbody').append(tr)
+                })
+            }
+            catch(err){
+                console.log(err)
+            }
+
+   }
+
+</script>
